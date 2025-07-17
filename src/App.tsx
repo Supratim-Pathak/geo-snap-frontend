@@ -7,14 +7,16 @@ import { useState } from "react";
 import map from "../public/map.png";
 import placeholder from "../public/placeholder (1).png";
 import Compasss from "../public/compass (1).png";
+import History from "../public/history.png";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import type { Route } from "./lib/types";
 
 const App = () => {
-  const [route, setRoute] = useState({
+  const [route, setRoute] = useState<Route>({
     popupContent: "text data",
     coords: [28.6139, 77.209],
   });
@@ -36,6 +38,14 @@ const App = () => {
     );
   };
 
+  const handelPlacePointer = (params: Route) => {
+    console.log(params);
+    const { popupContent, coords } = params;
+    setRoute({
+      popupContent: popupContent,
+      coords: coords,
+    });
+  };
   return (
     <div className="relative w-full h-full">
       <Popover>
@@ -54,11 +64,16 @@ const App = () => {
               </p>
             </div>
           </div>
-          <Routetabs></Routetabs>
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">
-              Recent Searches
-            </h3>
+          <Routetabs handelPlacePointer={handelPlacePointer}></Routetabs>
+          <div className="">
+            <div className="flex border-2 justify-between rounded-full p-2 my-3">
+              <h3 className="text-sm font-semibold text-gray-600 py-2">
+                Recent Searches
+              </h3>
+              <div>
+                <img src={History} alt="" />
+              </div>
+            </div>
             <ul className="space-y-2 max-h-40 overflow-y-auto pr-1">
               {[
                 "Kolkata to Delhi",

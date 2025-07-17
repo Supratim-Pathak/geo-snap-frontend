@@ -1,139 +1,114 @@
+"use client";
+
 import React from "react";
 import { TabsContent } from "../ui/tabs";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-
-interface Location {
-  place_id: React.Key | null | undefined;
-  display_name: string | number | bigint | boolean | null | undefined;
-}
-
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import axiosInstance from "@/lib/axios";
+import { ChevronsUpDown, Check } from "lucide-react";
+import Directions from "../../../public/directions.png";
+import type { Location } from "@/lib/types";
+import type { Props } from "@/lib/types";
+import { SaveToLocal } from "@/lib/utils";
+export default function FindPlaces({ handelPlacePointer }: Props) {
+  const [query, setQuery] = React.useState("");
+  const [places, setPlaces] = React.useState<Location[]>([]);
+  const [selectedLocation, setSelectedLocation] =
+    React.useState<Location | null>(null);
+  const [showOptions, setShowOptions] = React.useState(false);
 
-export default function FindPlaces() {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [place, setPlaces] = React.useState<any>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedLocation, setSelectedLocation] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    // const getPlaces = async () => {
-    //   try {
-    //     const response = await axiosInstance.get("/places/Kolkata");
-    //     console.log("Fetched Places:", response.data);
-    //     setPlaces(response.data);
-    //   } catch (error) {
-    //     console.error("Error fetching places:", error);
-    //   }
-    // };
-    // getPlaces();
-  }, []);
-
-  const searchPlaces = (query: string) => {
-    console.log("object", query);
-    setTimeout(async () => {
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+    if (value) {
       try {
-        const response = await axiosInstance.get(`/places/${query}`);
-        console.log("Fetched Places:", response.data);
+        const response = await axiosInstance.get(`/places/${value}`);
         setPlaces(response.data);
+        setShowOptions(true);
       } catch (error) {
         console.error("Error fetching places:", error);
       }
-    }, 2000);
+    } else {
+      setShowOptions(false);
+    }
+  };
+
+  const handleSelect = (location: Location) => {
+    setSelectedLocation(location);
+    setQuery(String(location.display_name));
+    console.log("object");
+    SaveToLocal(location)
+    setShowOptions(false);
   };
 
   return (
     <TabsContent value="location" className="space-y-4">
-      <div className="space-y-2 relative z-[60]">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between"
-            >
-              {value ? selectedLocation.display_name : "Search location..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-full p-0"
-            style={{
-              position: "relative",
-              width: "full",
-              zIndex: 1000, // Very high z-index
-            }}
-            avoidCollisions={true}
-            // collisionPadding={10}
-          >
-            <Command className="rounded-lg border shadow-md">
-              <CommandInput
-                onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                  const target = e.target as HTMLInputElement;
-                  searchPlaces(target.value);
-                }}
-                placeholder="Search location..."
-              />
-              <CommandEmpty>No location found.</CommandEmpty>
-              <CommandGroup className="max-h-[300px] overflow-y-auto">
-                {place?.map((location: Location) => (
-                  <CommandItem
-                    key={location.place_id}
-                    value={String(location.display_name)}
-                    onSelect={(currentValue) => {
-                      console.log(currentValue === location.display_name);
-                      setValue(
-                        currentValue === location.display_name
-                          ? currentValue
-                          : ""
-                      );
-                      setSelectedLocation(location);
-                      setOpen(false);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === location.display_name
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                    {location.display_name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+      <div className="relative">
+        <div className="flex items-center gap-2 border border-gray-300 rounded-md px-3 py-2">
+          <input
+            type="text"
+            className="w-full outline-none text-sm"
+            value={query}
+            onChange={handleChange}
+            onFocus={() => setShowOptions(true)}
+            placeholder="Search location..."
+          />
+          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+        </div>
+
+        {showOptions && places.length > 0 && (
+          <div className="absolute z-50 mt-1 w-full rounded-md bg-white shadow-lg border max-h-60 overflow-auto text-sm">
+            {places.map((location) => (
+              <div
+                key={location.place_id}
+                onClick={() => handleSelect(location)}
+                className="px-4 py-2 hover:bg-blue-100 cursor-pointer flex items-start gap-2"
+              >
+                <Check
+                  className={`h-4 w-4 mt-1 ${
+                    selectedLocation?.place_id === location.place_id
+                      ? "opacity-100"
+                      : "opacity-0"
+                  }`}
+                />
+                <span className="break-words">{location.display_name}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {selectedLocation && (
         <div className="rounded-lg border p-4 space-y-2">
-          <h3 className="font-medium">Place Information</h3>
+          <div className="flex justify-between border-2 p-2 rounded-full">
+            <h3 className="font-semibold p-1">Place Information</h3>
+            <div
+              className="hover:bg-gray-500 rounded-full p-1 cursor-pointer"
+              onClick={() => {
+                handelPlacePointer({
+                  popupContent: String(
+                    selectedLocation.label || selectedLocation.display_name
+                  ),
+                  coords: [selectedLocation.lat, Number(selectedLocation.lon)],
+                });
+              }}
+            >
+              <img src={Directions} alt="" />
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="space-y-1">
               <p className="text-muted-foreground">Name</p>
-              <p>{selectedLocation.label}</p>
+              <p>{selectedLocation.label || selectedLocation.display_name}</p>
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground">Coordinates</p>
-              <p>40.7128° N, 74.0060° W</p>
+              <p>
+                {selectedLocation.lat}, {selectedLocation.lon}
+              </p>{" "}
+              {/* Replace with actual coordinates if available */}
             </div>
           </div>
+          {/* <div className="py-3 flex items-center text-xs text-gray-400 uppercase before:flex-1 before:border-t before:border-gray-200 before:me-6 after:flex-1 after:border-t after:border-gray-200 after:ms-6 dark:text-neutral-500 dark:before:border-neutral-600 dark:after:border-neutral-600">Weather</div> */}
+          <div className=""></div>
         </div>
       )}
     </TabsContent>
