@@ -22,7 +22,9 @@ import axiosInstance from "@/lib/axios";
 export default function FindPlaces() {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [place, setPlaces] = React.useState<any>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedLocation, setSelectedLocation] = React.useState<any>(null);
 
   React.useEffect(() => {

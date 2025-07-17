@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 
-function FlyToLocation({ coords }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function FlyToLocation({ coords }:any) {
   const map = useMap();
 
   useEffect(() => {
@@ -16,7 +17,8 @@ function FlyToLocation({ coords }) {
   return null;
 }
 
-export default function MapUI({ coords , popupContent }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function MapUI({ coords , popupContent }:any) {
   return (
     <MapContainer center={coords} zoom={15} className="h-screen w-full z-0">
       <TileLayer
